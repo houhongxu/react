@@ -168,7 +168,7 @@ function legacyCreateRootFromDOMContainer(
       };
     }
 
-    //// 创建fiber root
+    //// 创建fiber容器
     const root = createContainer(
       container,
       LegacyRoot, //// 标记是render渲染的

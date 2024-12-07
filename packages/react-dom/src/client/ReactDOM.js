@@ -144,6 +144,7 @@ const Internals = {
   ],
 };
 
+//// 新api createroot
 function createRoot(
   container: Element | DocumentFragment,
   options?: CreateRootOptions,
@@ -156,6 +157,7 @@ function createRoot(
       );
     }
   }
+
   return createRootImpl(container, options);
 }
 

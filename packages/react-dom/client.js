@@ -22,6 +22,7 @@ import {
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED as Internals,
 } from './';
 
+//// 新api create root
 export function createRoot(
   container: Element | DocumentFragment,
   options?: CreateRootOptions,
@@ -29,6 +30,7 @@ export function createRoot(
   if (__DEV__) {
     Internals.usingClientEntryPoint = true;
   }
+
   try {
     return createRootImpl(container, options);
   } finally {

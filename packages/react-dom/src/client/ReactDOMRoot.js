@@ -85,14 +85,19 @@ const defaultOnRecoverableError =
         console['error'](error);
       };
 
+//// Root类
 function ReactDOMRoot(internalRoot: FiberRoot) {
   this._internalRoot = internalRoot;
 }
 
+//// Root类的render函数
 ReactDOMHydrationRoot.prototype.render = ReactDOMRoot.prototype.render = function(
   children: ReactNodeList,
 ): void {
+  //// 获取fiber root
   const root = this._internalRoot;
+
+  //// 没有则报错
   if (root === null) {
     throw new Error('Cannot update an unmounted root.');
   }
@@ -131,6 +136,8 @@ ReactDOMHydrationRoot.prototype.render = ReactDOMRoot.prototype.render = functio
       }
     }
   }
+
+  //// 开始渲染
   updateContainer(children, root, null, null);
 };
 
@@ -163,10 +170,12 @@ ReactDOMHydrationRoot.prototype.unmount = ReactDOMRoot.prototype.unmount = funct
   }
 };
 
+//// 真正的createRoot函数
 export function createRoot(
   container: Element | DocumentFragment,
   options?: CreateRootOptions,
 ): RootType {
+  //// 判断空container
   if (!isValidContainer(container)) {
     throw new Error('createRoot(...): Target container is not a DOM element.');
   }
@@ -179,6 +188,7 @@ export function createRoot(
   let onRecoverableError = defaultOnRecoverableError;
   let transitionCallbacks = null;
 
+  //// 处理options配置
   if (options !== null && options !== undefined) {
     if (__DEV__) {
       if ((options: any).hydrate) {
@@ -201,26 +211,32 @@ export function createRoot(
         }
       }
     }
+
     if (options.unstable_strictMode === true) {
       isStrictMode = true;
     }
+
     if (
       allowConcurrentByDefault &&
       options.unstable_concurrentUpdatesByDefault === true
     ) {
       concurrentUpdatesByDefaultOverride = true;
     }
+
     if (options.identifierPrefix !== undefined) {
       identifierPrefix = options.identifierPrefix;
     }
+
     if (options.onRecoverableError !== undefined) {
       onRecoverableError = options.onRecoverableError;
     }
+
     if (options.transitionCallbacks !== undefined) {
       transitionCallbacks = options.transitionCallbacks;
     }
   }
 
+  //// 创建fiber容器
   const root = createContainer(
     container,
     ConcurrentRoot,
@@ -231,14 +247,20 @@ export function createRoot(
     onRecoverableError,
     transitionCallbacks,
   );
+
+  //// 标记为root
   markContainerAsRoot(root.current, container);
 
+  //// 规范container，是注释节点时取父节点
   const rootContainerElement: Document | Element | DocumentFragment =
     container.nodeType === COMMENT_NODE
       ? (container.parentNode: any)
       : container;
+
+  //// 监听支持的dom事件
   listenToAllSupportedEvents(rootContainerElement);
 
+  //// 返回Root实例
   return new ReactDOMRoot(root);
 }
 
