@@ -11,8 +11,16 @@
  * HTML nodeType values that represent the type of the node
  */
 
+//// HTML 元素
 export const ELEMENT_NODE = 1;
+
+//// 文本节点
 export const TEXT_NODE = 3;
+
+//// 注释节点
 export const COMMENT_NODE = 8;
+
+//// document节点
 export const DOCUMENT_NODE = 9;
+
 export const DOCUMENT_FRAGMENT_NODE = 11;

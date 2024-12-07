@@ -323,11 +323,13 @@ export function listenToNonDelegatedEvent(
   }
 }
 
+//// 监听dom事件
 export function listenToNativeEvent(
   domEventName: DOMEventName,
   isCapturePhaseListener: boolean,
   target: EventTarget,
 ): void {
+  //// 不是事件委托的事件 应该是捕获事件，如果是冒泡事件则应该报错，react 冒泡事件都通过事件委托处理
   if (__DEV__) {
     if (nonDelegatedEvents.has(domEventName) && !isCapturePhaseListener) {
       console.error(
@@ -383,34 +385,49 @@ const listeningMarker =
     .toString(36)
     .slice(2);
 
+//// 监听支持的dom事件
 export function listenToAllSupportedEvents(rootContainerElement: EventTarget) {
   if (!(rootContainerElement: any)[listeningMarker]) {
+    //// 没有在监听时才执行
     (rootContainerElement: any)[listeningMarker] = true;
+
     allNativeEvents.forEach(domEventName => {
+      //// 在后面再单独处理事件selectionchange因为它不冒泡且要在文档级别监听
       // We handle selectionchange separately because it
       // doesn't bubble and needs to be on the document.
       if (domEventName !== 'selectionchange') {
         if (!nonDelegatedEvents.has(domEventName)) {
+          //// 监听是事件委托的事件
           listenToNativeEvent(domEventName, false, rootContainerElement);
         }
+
+        ////监听不是事件委托的事件
         listenToNativeEvent(domEventName, true, rootContainerElement);
       }
     });
+
+    //// 用 dom api 获取所在document
     const ownerDocument =
       (rootContainerElement: any).nodeType === DOCUMENT_NODE
         ? rootContainerElement
         : (rootContainerElement: any).ownerDocument;
+
+    //// 存在document时
     if (ownerDocument !== null) {
       // The selectionchange event also needs deduplication
       // but it is attached to the document.
       if (!(ownerDocument: any)[listeningMarker]) {
+        //// 没有在监听时才执行
         (ownerDocument: any)[listeningMarker] = true;
+
+        //// 监听是事件委托的事件
         listenToNativeEvent('selectionchange', false, ownerDocument);
       }
     }
   }
 }
 
+//// 添加捕获事件监听器
 function addTrappedEventListener(
   targetContainer: EventTarget,
   domEventName: DOMEventName,

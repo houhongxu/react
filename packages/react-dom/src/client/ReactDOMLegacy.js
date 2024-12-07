@@ -108,6 +108,7 @@ function noopOnRecoverableError() {
   // legacy API.
 }
 
+//// 传统新建fiber树
 function legacyCreateRootFromDOMContainer(
   container: Container,
   initialChildren: ReactNodeList,
@@ -116,6 +117,8 @@ function legacyCreateRootFromDOMContainer(
   isHydrationContainer: boolean,
 ): FiberRoot {
   if (isHydrationContainer) {
+    //// 水合时
+
     if (typeof callback === 'function') {
       const originalCallback = callback;
       callback = function() {
@@ -147,12 +150,16 @@ function legacyCreateRootFromDOMContainer(
     flushSync();
     return root;
   } else {
+    //// 客户端渲染时
+
+    //// 首先使用dom的api清空子dom
     // First clear any existing content.
     let rootSibling;
     while ((rootSibling = container.lastChild)) {
       container.removeChild(rootSibling);
     }
 
+    //// 处理render callback 的this指向root
     if (typeof callback === 'function') {
       const originalCallback = callback;
       callback = function() {
@@ -161,9 +168,10 @@ function legacyCreateRootFromDOMContainer(
       };
     }
 
+    //// 创建fiber root
     const root = createContainer(
       container,
-      LegacyRoot,
+      LegacyRoot, //// 标记是render渲染的
       null, // hydrationCallbacks
       false, // isStrictMode
       false, // concurrentUpdatesByDefaultOverride,
@@ -171,15 +179,23 @@ function legacyCreateRootFromDOMContainer(
       noopOnRecoverableError, // onRecoverableError
       null, // transitionCallbacks
     );
+
+    //// 内部属性指向root
     container._reactRootContainer = root;
+
+    //// 标记为root
     markContainerAsRoot(root.current, container);
 
+    //// 规范container，是注释节点时取父节点
     const rootContainerElement =
       container.nodeType === COMMENT_NODE ? container.parentNode : container;
+
+    //// 监听支持的dom事件
     listenToAllSupportedEvents(rootContainerElement);
 
     // Initial mount should not be batched.
     flushSync(() => {
+      //// 开始渲染
       updateContainer(initialChildren, root, parentComponent, callback);
     });
 
@@ -200,6 +216,7 @@ function warnOnInvalidCallback(callback: mixed, callerName: string): void {
   }
 }
 
+//// 使用传统方式渲染子树
 function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
@@ -212,9 +229,14 @@ function legacyRenderSubtreeIntoContainer(
     warnOnInvalidCallback(callback === undefined ? null : callback, 'render');
   }
 
+  //// 可能的根节点，防止重复渲染
   const maybeRoot = container._reactRootContainer;
+
+  //// 根节点
   let root: FiberRoot;
+
   if (!maybeRoot) {
+    //// 没有则初始化fiber树
     // Initial mount
     root = legacyCreateRootFromDOMContainer(
       container,
@@ -224,7 +246,10 @@ function legacyRenderSubtreeIntoContainer(
       forceHydrate,
     );
   } else {
+    //// 有则赋值
     root = maybeRoot;
+
+    //// 处理render callback 的this指向root
     if (typeof callback === 'function') {
       const originalCallback = callback;
       callback = function() {
@@ -232,9 +257,12 @@ function legacyRenderSubtreeIntoContainer(
         originalCallback.call(instance);
       };
     }
+
+    //// 开始渲染
     // Update
     updateContainer(children, root, parentComponent, callback);
   }
+
   return getPublicRootInstance(root);
 }
 
@@ -270,6 +298,7 @@ export function findDOMNode(
   return findHostInstance(componentOrElement);
 }
 
+//// 水合函数
 export function hydrate(
   element: React$Node,
   container: Container,
@@ -305,16 +334,18 @@ export function hydrate(
     null,
     element,
     container,
-    true,
+    true, //// 启用水合
     callback,
   );
 }
 
+//// render函数
 export function render(
   element: React$Element<any>,
   container: Container,
   callback: ?Function,
 ) {
+  // 提示render弃用
   if (__DEV__) {
     console.error(
       'ReactDOM.render is no longer supported in React 18. Use createRoot ' +
@@ -324,14 +355,21 @@ export function render(
     );
   }
 
+  //// 判断container是dom
   if (!isValidContainerLegacy(container)) {
     throw new Error('Target container is not a DOM element.');
   }
 
   if (__DEV__) {
+    //// createroot的container._reactRootContainer这里会为undefined
+    //// 如果是render会在函数legacyCreateRootFromDOMContainer指向root
     const isModernRoot =
       isContainerMarkedAsRoot(container) &&
       container._reactRootContainer === undefined;
+
+    //// 提示creatroot后不要调用render
+    //// const root = ReactDOM.createRoot(container);
+    //// ReactDOM.render(<App />, container);
     if (isModernRoot) {
       console.error(
         'You are calling ReactDOM.render() on a container that was previously ' +
@@ -340,11 +378,12 @@ export function render(
       );
     }
   }
+
   return legacyRenderSubtreeIntoContainer(
     null,
     element,
     container,
-    false,
+    false, //// 不启用水合
     callback,
   );
 }
