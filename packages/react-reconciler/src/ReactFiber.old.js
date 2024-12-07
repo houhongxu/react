@@ -119,6 +119,7 @@ if (__DEV__) {
   }
 }
 
+//// fiber类
 function FiberNode(
   tag: WorkTag,
   pendingProps: mixed,
@@ -130,6 +131,7 @@ function FiberNode(
   this.key = key;
   this.elementType = null;
   this.type = null;
+  //// 真实dom或者其他内容
   this.stateNode = null;
 
   // Fiber
@@ -146,6 +148,7 @@ function FiberNode(
   this.memoizedState = null;
   this.dependencies = null;
 
+  //// 模式
   this.mode = mode;
 
   // Effects
@@ -198,6 +201,7 @@ function FiberNode(
   }
 }
 
+//// 创建fiber
 // This is a constructor function, rather than a POJO constructor, still
 // please ensure we do the following:
 // 1) Nobody should add any instance methods on this. Instance methods can be
@@ -429,24 +433,33 @@ export function resetWorkInProgress(workInProgress: Fiber, renderLanes: Lanes) {
   return workInProgress;
 }
 
+//// 创建host root fiber
 export function createHostRootFiber(
   tag: RootTag,
   isStrictMode: boolean,
   concurrentUpdatesByDefaultOverride: null | boolean,
 ): Fiber {
+  //// 模式
   let mode;
+
   if (tag === ConcurrentRoot) {
+    //// concurrent模式
     mode = ConcurrentMode;
+
     if (isStrictMode === true) {
+      //// 仅用于内部，严格模式分两种但是用户使用只能一起开启，这里应该是内部使用
       mode |= StrictLegacyMode;
 
       if (enableStrictEffects) {
         mode |= StrictEffectsMode;
       }
     } else if (enableStrictEffects && createRootStrictEffectsByDefault) {
+      //// 用户开启严格模式
       mode |= StrictLegacyMode | StrictEffectsMode;
     }
+
     if (
+      //// 仅用于内部
       // We only use this flag for our repo tests to check both behaviors.
       // TODO: Flip this flag and rename it something like "forceConcurrentByDefaultForTesting"
       !enableSyncDefaultUpdates ||
@@ -456,10 +469,12 @@ export function createHostRootFiber(
       mode |= ConcurrentUpdatesByDefaultMode;
     }
   } else {
+    //// render时就没有模式
     mode = NoMode;
   }
 
   if (enableProfilerTimer && isDevToolsPresent) {
+    //// 性能分析
     // Always collect profile timings when DevTools are present.
     // This enables DevTools to start capturing timing at any point–
     // Without some nodes in the tree having empty base times.

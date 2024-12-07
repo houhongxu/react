@@ -45,6 +45,7 @@ export type RootState = {
   transitions: Transitions | null,
 };
 
+//// fiber root 类
 function FiberRootNode(
   containerInfo,
   tag,
@@ -125,6 +126,7 @@ function FiberRootNode(
   }
 }
 
+//// 创建fiber root
 export function createFiberRoot(
   containerInfo: any,
   tag: RootTag,
@@ -141,6 +143,7 @@ export function createFiberRoot(
   onRecoverableError: null | ((error: mixed) => void),
   transitionCallbacks: null | TransitionTracingCallbacks,
 ): FiberRoot {
+  //// 创建fiber root实例
   const root: FiberRoot = (new FiberRootNode(
     containerInfo,
     tag,
@@ -148,6 +151,7 @@ export function createFiberRoot(
     identifierPrefix,
     onRecoverableError,
   ): any);
+
   if (enableSuspenseCallback) {
     root.hydrationCallbacks = hydrationCallbacks;
   }
@@ -156,6 +160,7 @@ export function createFiberRoot(
     root.transitionCallbacks = transitionCallbacks;
   }
 
+  //// 创建未初始化的host root fiber
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
   const uninitializedFiber = createHostRootFiber(
@@ -163,9 +168,14 @@ export function createFiberRoot(
     isStrictMode,
     concurrentUpdatesByDefaultOverride,
   );
+
+  //// 当前fiber树执行这个未初始化的树
   root.current = uninitializedFiber;
+
+  //// 一般指向dom或其他内容，先指向fiber root
   uninitializedFiber.stateNode = root;
 
+  // TODO 初始化流程
   if (enableCache) {
     const initialCache = createCache();
     retainCache(initialCache);

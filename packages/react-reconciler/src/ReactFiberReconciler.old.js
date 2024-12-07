@@ -243,6 +243,7 @@ function findHostInstanceWithWarning(
   return findHostInstance(component);
 }
 
+//// 创建fiber容器
 export function createContainer(
   containerInfo: Container,
   tag: RootTag,
@@ -253,8 +254,13 @@ export function createContainer(
   onRecoverableError: (error: mixed) => void,
   transitionCallbacks: null | TransitionTracingCallbacks,
 ): OpaqueRoot {
+
+  //// 不是水合
   const hydrate = false;
+
+  //// 没有默认内容
   const initialChildren = null;
+
   return createFiberRoot(
     containerInfo,
     tag,
@@ -317,6 +323,7 @@ export function createHydrationContainer(
   return root;
 }
 
+//// 开始渲染
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
