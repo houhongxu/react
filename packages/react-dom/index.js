@@ -9,6 +9,9 @@
 
 // Export all exports so that they're available in tests.
 // We can't use export * from in Flow for some reason.
+
+//// react 18还是保留render
+
 export {
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
   createPortal,
