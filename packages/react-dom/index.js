@@ -8,6 +8,8 @@
  */
 
 export {default as __DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE} from './src/ReactDOMSharedInternals';
+
+//// react19彻底去掉了render函数，导致antd5一开始都没兼容，后续可以跟踪一下他们的解决方案
 export {
   createPortal,
   flushSync,
