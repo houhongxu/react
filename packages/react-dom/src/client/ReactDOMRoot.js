@@ -90,7 +90,7 @@ function ReactDOMRoot(internalRoot: FiberRoot) {
   this._internalRoot = internalRoot;
 }
 
-//// Root类的render函数
+//// ! Root类的render函数
 ReactDOMHydrationRoot.prototype.render = ReactDOMRoot.prototype.render = function(
   children: ReactNodeList,
 ): void {
@@ -137,8 +137,10 @@ ReactDOMHydrationRoot.prototype.render = ReactDOMRoot.prototype.render = functio
     }
   }
 
-  //// 开始渲染
+  //// ! 开始渲染
   updateContainer(children, root, null, null);
+  //// 对比render
+  // updateContainer(children, root, parentComponent, callback);
 };
 
 ReactDOMHydrationRoot.prototype.unmount = ReactDOMRoot.prototype.unmount = function(): void {
@@ -170,7 +172,7 @@ ReactDOMHydrationRoot.prototype.unmount = ReactDOMRoot.prototype.unmount = funct
   }
 };
 
-//// 真正的createRoot函数
+//// ! 真正的createRoot函数
 export function createRoot(
   container: Element | DocumentFragment,
   options?: CreateRootOptions,
@@ -236,7 +238,7 @@ export function createRoot(
     }
   }
 
-  //// 创建fiber容器
+  //// ! 创建fiber root
   const root = createContainer(
     container,
     ConcurrentRoot,
@@ -247,8 +249,19 @@ export function createRoot(
     onRecoverableError,
     transitionCallbacks,
   );
+  //// 对比render
+  // const root = createContainer(
+  //   container,
+  //   LegacyRoot, //// 标记是render渲染的
+  //   null, // hydrationCallbacks
+  //   false, // isStrictMode
+  //   false, // concurrentUpdatesByDefaultOverride,
+  //   '', // identifierPrefix
+  //   noopOnRecoverableError, // onRecoverableError
+  //   null, // transitionCallbacks
+  // );
 
-  //// 标记为root
+  //// container内部属性指向host root fiber
   markContainerAsRoot(root.current, container);
 
   //// 规范container，是注释节点时取父节点
@@ -257,7 +270,7 @@ export function createRoot(
       ? (container.parentNode: any)
       : container;
 
-  //// 监听支持的dom事件
+  //// ! 监听支持的dom事件
   listenToAllSupportedEvents(rootContainerElement);
 
   //// 返回Root实例

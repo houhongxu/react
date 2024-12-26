@@ -56,7 +56,10 @@ function FiberRootNode(
   this.tag = tag;
   this.containerInfo = containerInfo;
   this.pendingChildren = null;
+
+  //// 指向当前fiber树
   this.current = null;
+
   this.pingCache = null;
   this.finishedWork = null;
   this.timeoutHandle = noTimeout;
@@ -169,14 +172,14 @@ export function createFiberRoot(
     concurrentUpdatesByDefaultOverride,
   );
 
-  //// 当前fiber树执行这个未初始化的树
+  //// ! 当前fiber树指向这个未初始化的树，通过这个current属性切换缓存树
   root.current = uninitializedFiber;
 
-  //// 一般指向dom或其他内容，先指向fiber root
+  //// ! 一般指向dom，host root fiber例外，指向fiber root
   uninitializedFiber.stateNode = root;
 
-  // TODO 初始化流程
   if (enableCache) {
+    //// TODO 开启缓存
     const initialCache = createCache();
     retainCache(initialCache);
 
@@ -197,15 +200,18 @@ export function createFiberRoot(
     };
     uninitializedFiber.memoizedState = initialState;
   } else {
+    //// 初始化状态链表
     const initialState: RootState = {
       element: initialChildren,
       isDehydrated: hydrate,
       cache: (null: any), // not enabled yet
       transitions: null,
     };
+
     uninitializedFiber.memoizedState = initialState;
   }
 
+  //// ! 初始化更新链表，仅host root fiber，普通fiber没有
   initializeUpdateQueue(uninitializedFiber);
 
   return root;

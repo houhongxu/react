@@ -255,9 +255,16 @@ const {
 
 type ExecutionContext = number;
 
+//// 没有上下文
 export const NoContext = /*             */ 0b000;
+
+//// 批处理上下文
 const BatchedContext = /*               */ 0b001;
+
+//// render阶段上下文
 const RenderContext = /*                */ 0b010;
+
+//// commit阶段上下文
 const CommitContext = /*                */ 0b100;
 
 type RootExitStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -269,12 +276,16 @@ const RootSuspendedWithDelay = 4;
 const RootCompleted = 5;
 const RootDidNotComplete = 6;
 
+//// 执行时的上下文
 // Describes where we are in the React execution stack
 let executionContext: ExecutionContext = NoContext;
+
 // The root we're working on
 let workInProgressRoot: FiberRoot | null = null;
+
 // The fiber we're working on
 let workInProgress: Fiber | null = null;
+
 // The lanes we're rendering
 let workInProgressRootRenderLanes: Lanes = NoLanes;
 
@@ -400,28 +411,38 @@ let rootWithNestedUpdates: FiberRoot | null = null;
 const NESTED_PASSIVE_UPDATE_LIMIT = 50;
 let nestedPassiveUpdateCount: number = 0;
 
+//// 当前事件时间，同一时间的事件被当做同时发生
 // If two updates are scheduled within the same event, we should treat their
 // event times as simultaneous, even if the actual clock time has advanced
 // between the first and second call.
 let currentEventTime: number = NoTimestamp;
+
+//// 当前过渡事件优先级
 let currentEventTransitionLane: Lanes = NoLanes;
 
 export function getWorkInProgressRoot(): FiberRoot | null {
   return workInProgressRoot;
 }
 
+//// 获取事件执行事件
 export function requestEventTime() {
+  //// 在render或者commit阶段，说明在react流程中，直接返回最新时间
   if ((executionContext & (RenderContext | CommitContext)) !== NoContext) {
     // We're inside React, so it's fine to read the actual time.
     return now();
   }
+
+  //// 不在react流程中，返回当前事件的时间
   // We're not inside React, so we may be in the middle of a browser event.
   if (currentEventTime !== NoTimestamp) {
     // Use the same start time for all updates until we enter React again.
     return currentEventTime;
   }
+
+  //// 如果是第一次调用，使用最新时间
   // This is the first update since React yielded. Compute a new start time.
   currentEventTime = now();
+
   return currentEventTime;
 }
 
@@ -429,16 +450,21 @@ export function getCurrentTime() {
   return now();
 }
 
+//// 获取更新优先级
 export function requestUpdateLane(fiber: Fiber): Lane {
+  //// 获取fiber渲染模式
   // Special cases
   const mode = fiber.mode;
+
   if ((mode & ConcurrentMode) === NoMode) {
+    //// mode不包括ConcurrentMode时,返回同步模式
     return (SyncLane: Lane);
   } else if (
     !deferRenderPhaseUpdateToNextBatch &&
     (executionContext & RenderContext) !== NoContext &&
     workInProgressRootRenderLanes !== NoLanes
   ) {
+    //// 非官方特性，目前兼容后续移除
     // This is a render phase update. These are not officially supported. The
     // old behavior is to give this the same "thread" (lanes) as
     // whatever is currently rendering. So if you call `setState` on a component
@@ -451,7 +477,9 @@ export function requestUpdateLane(fiber: Fiber): Lane {
     return pickArbitraryLane(workInProgressRootRenderLanes);
   }
 
+  //// TODO 是否是过渡事件
   const isTransition = requestCurrentTransition() !== NoTransition;
+
   if (isTransition) {
     if (__DEV__ && ReactCurrentBatchConfig.transition !== null) {
       const transition = ReactCurrentBatchConfig.transition;
@@ -510,6 +538,7 @@ function requestRetryLane(fiber: Fiber) {
   return claimNextRetryLane();
 }
 
+//// 调度器更新当前fiber
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   lane: Lane,
@@ -517,11 +546,14 @@ export function scheduleUpdateOnFiber(
 ): FiberRoot | null {
   checkForNestedUpdates();
 
+  //// ! 收集更新优先级到root
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
+
   if (root === null) {
     return null;
   }
 
+  //// ! 标记root是否需要更新
   // Mark that the root has a pending update.
   markRootUpdated(root, lane, eventTime);
 
@@ -611,7 +643,9 @@ export function scheduleUpdateOnFiber(
       }
     }
 
+    //// ! 确保root被调度器更新
     ensureRootIsScheduled(root, eventTime);
+
     if (
       lane === SyncLane &&
       executionContext === NoContext &&
@@ -715,6 +749,7 @@ export function isInterleavedUpdate(fiber: Fiber, lane: Lane) {
   );
 }
 
+//// ! 确保root被调度器更新
 // Use this function to schedule a task for a root. There's only one task per
 // root; if a task was already scheduled, we'll check to make sure the priority
 // of the existing task is the same as the priority of the next level that the
@@ -743,6 +778,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     return;
   }
 
+  //// 获取新回调的最高的优先级
   // We use the highest priority lane to represent the priority of the callback.
   const newCallbackPriority = getHighestPriorityLane(nextLanes);
 
@@ -781,20 +817,31 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     cancelCallback(existingCallbackNode);
   }
 
+  //// 调度器下次回调的节点
   // Schedule a new callback.
   let newCallbackNode;
+
+  //// 如果新回调最高优先级是同步
   if (newCallbackPriority === SyncLane) {
     // Special case: Sync React callbacks are scheduled on a special
     // internal queue
     if (root.tag === LegacyRoot) {
+      //// render函数入口
+
       if (__DEV__ && ReactCurrentActQueue.isBatchingLegacy !== null) {
         ReactCurrentActQueue.didScheduleLegacyUpdate = true;
       }
+
+      //// ! 使用传统同步调用
       scheduleLegacySyncCallback(performSyncWorkOnRoot.bind(null, root));
     } else {
+
+      //// ! 同步调用
       scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));
     }
+
     if (supportsMicrotasks) {
+      //// TODO 支持微任务
       // Flush the queue in a microtask.
       if (__DEV__ && ReactCurrentActQueue.current !== null) {
         // Inside `act`, use our internal `act` queue so that these get flushed
@@ -818,9 +865,12 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
       // Flush the queue in an Immediate task.
       scheduleCallback(ImmediateSchedulerPriority, flushSyncCallbacks);
     }
+
     newCallbackNode = null;
   } else {
+    //// TODO 宏任务？
     let schedulerPriorityLevel;
+
     switch (lanesToEventPriority(nextLanes)) {
       case DiscreteEventPriority:
         schedulerPriorityLevel = ImmediateSchedulerPriority;
@@ -838,6 +888,8 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
         schedulerPriorityLevel = NormalSchedulerPriority;
         break;
     }
+
+    //// ! 调用
     newCallbackNode = scheduleCallback(
       schedulerPriorityLevel,
       performConcurrentWorkOnRoot.bind(null, root),
@@ -3022,6 +3074,7 @@ export function restorePendingUpdaters(root: FiberRoot, lanes: Lanes): void {
 }
 
 const fakeActCallbackNode = {};
+
 function scheduleCallback(priorityLevel, callback) {
   if (__DEV__) {
     // If we're currently inside an `act` scope, bypass Scheduler and push to

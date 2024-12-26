@@ -108,7 +108,7 @@ function noopOnRecoverableError() {
   // legacy API.
 }
 
-//// 传统新建fiber树
+//// ! 传统新建fiber树
 function legacyCreateRootFromDOMContainer(
   container: Container,
   initialChildren: ReactNodeList,
@@ -168,7 +168,7 @@ function legacyCreateRootFromDOMContainer(
       };
     }
 
-    //// 创建fiber容器
+    //// ! 创建fiber root
     const root = createContainer(
       container,
       LegacyRoot, //// 标记是render渲染的
@@ -180,10 +180,10 @@ function legacyCreateRootFromDOMContainer(
       null, // transitionCallbacks
     );
 
-    //// 内部属性指向root
+    //// container内部属性指向fiber root
     container._reactRootContainer = root;
 
-    //// 标记为root
+    //// container内部属性指向host root fiber
     markContainerAsRoot(root.current, container);
 
     //// 规范container，是注释节点时取父节点
@@ -193,9 +193,10 @@ function legacyCreateRootFromDOMContainer(
     //// 监听支持的dom事件
     listenToAllSupportedEvents(rootContainerElement);
 
+    //// 使用flush sync强制更新dom，因为初始化不需要批处理
     // Initial mount should not be batched.
     flushSync(() => {
-      //// 开始渲染
+      //// ! 开始初始化渲染
       updateContainer(initialChildren, root, parentComponent, callback);
     });
 
@@ -216,7 +217,7 @@ function warnOnInvalidCallback(callback: mixed, callerName: string): void {
   }
 }
 
-//// 使用传统方式渲染子树
+//// ! 使用传统方式渲染子树
 function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
@@ -236,7 +237,7 @@ function legacyRenderSubtreeIntoContainer(
   let root: FiberRoot;
 
   if (!maybeRoot) {
-    //// 没有则初始化fiber树
+    //// ! 没有则初始化fiber树
     // Initial mount
     root = legacyCreateRootFromDOMContainer(
       container,
@@ -258,7 +259,7 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
 
-    //// 开始渲染
+    //// ! 开始渲染
     // Update
     updateContainer(children, root, parentComponent, callback);
   }
@@ -339,7 +340,7 @@ export function hydrate(
   );
 }
 
-//// render函数
+//// ! render函数
 export function render(
   element: React$Element<any>,
   container: Container,
@@ -379,6 +380,7 @@ export function render(
     }
   }
 
+  //// ! 使用传统方式渲染子树
   return legacyRenderSubtreeIntoContainer(
     null,
     element,

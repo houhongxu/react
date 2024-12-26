@@ -243,7 +243,7 @@ function findHostInstanceWithWarning(
   return findHostInstance(component);
 }
 
-//// 创建fiber容器
+//// ! 创建fiber容器的fiber root
 export function createContainer(
   containerInfo: Container,
   tag: RootTag,
@@ -254,7 +254,6 @@ export function createContainer(
   onRecoverableError: (error: mixed) => void,
   transitionCallbacks: null | TransitionTracingCallbacks,
 ): OpaqueRoot {
-
   //// 不是水合
   const hydrate = false;
 
@@ -323,7 +322,7 @@ export function createHydrationContainer(
   return root;
 }
 
-//// 开始渲染
+//// ! 开始渲染
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
@@ -333,8 +332,13 @@ export function updateContainer(
   if (__DEV__) {
     onScheduleRoot(container, element);
   }
+  //// 当前fiber树
   const current = container.current;
+
+  //// 当前事件触发时间
   const eventTime = requestEventTime();
+
+  //// ! 更新的优先级lane
   const lane = requestUpdateLane(current);
 
   if (enableSchedulingProfiler) {
@@ -342,6 +346,7 @@ export function updateContainer(
   }
 
   const context = getContextForSubtree(parentComponent);
+
   if (container.context === null) {
     container.context = context;
   } else {
@@ -365,9 +370,11 @@ export function updateContainer(
     }
   }
 
+  //// ! 创建更新对象
   const update = createUpdate(eventTime, lane);
   // Caution: React DevTools currently depends on this property
   // being called "element".
+  //// 添加更新内容为react element
   update.payload = {element};
 
   callback = callback === undefined ? null : callback;
@@ -381,11 +388,17 @@ export function updateContainer(
         );
       }
     }
+
+    //// 添加更新完成的回调
     update.callback = callback;
   }
 
+  //// ! 加入更新链表，更新队列只是名字叫队列
   enqueueUpdate(current, update, lane);
+
+  //// ! 调度器更新当前fiber
   const root = scheduleUpdateOnFiber(current, lane, eventTime);
+
   if (root !== null) {
     entangleTransitions(root, current, lane);
   }

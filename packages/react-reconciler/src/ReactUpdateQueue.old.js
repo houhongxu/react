@@ -162,6 +162,7 @@ if (__DEV__) {
   };
 }
 
+//// 初始化更新链表
 export function initializeUpdateQueue<State>(fiber: Fiber): void {
   const queue: UpdateQueue<State> = {
     baseState: fiber.memoizedState,
@@ -174,6 +175,7 @@ export function initializeUpdateQueue<State>(fiber: Fiber): void {
     },
     effects: null,
   };
+
   fiber.updateQueue = queue;
 }
 
@@ -196,6 +198,7 @@ export function cloneUpdateQueue<State>(
   }
 }
 
+//// 创建更新对象
 export function createUpdate(eventTime: number, lane: Lane): Update<*> {
   const update: Update<*> = {
     eventTime,
@@ -210,20 +213,25 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
   return update;
 }
 
+//// 将对象更新加入到fiber的更新队列
 export function enqueueUpdate<State>(
   fiber: Fiber,
   update: Update<State>,
   lane: Lane,
 ) {
+  //// fiber的更新队列
   const updateQueue = fiber.updateQueue;
+
   if (updateQueue === null) {
     // Only occurs if the fiber has been unmounted.
     return;
   }
 
+  //// 批处理共享队列
   const sharedQueue: SharedQueue<State> = (updateQueue: any).shared;
 
   if (isInterleavedUpdate(fiber, lane)) {
+    //// TODO 交叉更新
     const interleaved = sharedQueue.interleaved;
     if (interleaved === null) {
       // This is the first update. Create a circular list.
@@ -237,14 +245,22 @@ export function enqueueUpdate<State>(
     }
     sharedQueue.interleaved = update;
   } else {
+    //// 获取当前的更新
     const pending = sharedQueue.pending;
+
     if (pending === null) {
+      //// 第一个更新创建一个循环链表
       // This is the first update. Create a circular list.
       update.next = update;
     } else {
+      //// 本次更新的下一个是原来链表的下一个
       update.next = pending.next;
+
+      //// 下一个更新就是本次更新
       pending.next = update;
     }
+
+    //// 当前更新改为本次更新对象
     sharedQueue.pending = update;
   }
 

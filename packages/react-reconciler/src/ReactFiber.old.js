@@ -131,6 +131,7 @@ function FiberNode(
   this.key = key;
   this.elementType = null;
   this.type = null;
+
   //// 真实dom或者其他内容
   this.stateNode = null;
 
@@ -144,11 +145,15 @@ function FiberNode(
 
   this.pendingProps = pendingProps;
   this.memoizedProps = null;
+
+  //// 更新链表
   this.updateQueue = null;
+
+  //// fiber状态，可能是值或者链表
   this.memoizedState = null;
   this.dependencies = null;
 
-  //// 模式
+  //// fiber渲染模式
   this.mode = mode;
 
   // Effects
@@ -433,7 +438,7 @@ export function resetWorkInProgress(workInProgress: Fiber, renderLanes: Lanes) {
   return workInProgress;
 }
 
-//// 创建host root fiber
+//// 创建host root fiber，host root fiber也属于fiber
 export function createHostRootFiber(
   tag: RootTag,
   isStrictMode: boolean,
@@ -481,6 +486,7 @@ export function createHostRootFiber(
     mode |= ProfileMode;
   }
 
+  //// HostRoot打根节点tag
   return createFiber(HostRoot, null, null, mode);
 }
 
