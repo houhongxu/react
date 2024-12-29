@@ -200,7 +200,7 @@ export function createFiberRoot(
     };
     uninitializedFiber.memoizedState = initialState;
   } else {
-    //// 初始化状态链表
+    //// ! 初始化状态链表
     const initialState: RootState = {
       element: initialChildren,
       isDehydrated: hydrate,
