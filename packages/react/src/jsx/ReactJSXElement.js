@@ -13,6 +13,7 @@ import {checkKeyStringCoercion} from 'shared/CheckStringCoercion';
 
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
+//// 不采用config的属性
 const RESERVED_PROPS = {
   key: true,
   ref: true,
@@ -28,6 +29,7 @@ if (__DEV__) {
   didWarnAboutStringRefs = {};
 }
 
+//// config.ref存在
 function hasValidRef(config) {
   if (__DEV__) {
     if (hasOwnProperty.call(config, 'ref')) {
@@ -40,6 +42,7 @@ function hasValidRef(config) {
   return config.ref !== undefined;
 }
 
+//// config.key存在
 function hasValidKey(config) {
   if (__DEV__) {
     if (hasOwnProperty.call(config, 'key')) {
@@ -83,7 +86,7 @@ function warnIfStringRefCannotBeAutoConverted(config, self) {
 
 function defineKeyPropWarningGetter(props, displayName) {
   if (__DEV__) {
-    const warnAboutAccessingKey = function() {
+    const warnAboutAccessingKey = function () {
       if (!specialPropKeyWarningShown) {
         specialPropKeyWarningShown = true;
         console.error(
@@ -105,7 +108,7 @@ function defineKeyPropWarningGetter(props, displayName) {
 
 function defineRefPropWarningGetter(props, displayName) {
   if (__DEV__) {
-    const warnAboutAccessingRef = function() {
+    const warnAboutAccessingRef = function () {
       if (!specialPropRefWarningShown) {
         specialPropRefWarningShown = true;
         console.error(
@@ -145,7 +148,7 @@ function defineRefPropWarningGetter(props, displayName) {
  * indicating filename, line number, and/or other information.
  * @internal
  */
-const ReactElement = function(type, key, ref, self, source, owner, props) {
+const ReactElement = function (type, key, ref, self, source, owner, props) {
   const element = {
     // This tag allows us to uniquely identify this as a React Element
     $$typeof: REACT_ELEMENT_TYPE,
@@ -201,6 +204,7 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
   return element;
 };
 
+//// 生产环境处理jsx转换为react element
 /**
  * https://github.com/reactjs/rfcs/pull/107
  * @param {*} type
@@ -216,6 +220,7 @@ export function jsx(type, config, maybeKey) {
   let key = null;
   let ref = null;
 
+  //// 确保key是字符串
   // Currently, key can be spread in as a prop. This causes a potential
   // issue if key is also explicitly declared (ie. <div {...props} key="Hi" />
   // or <div key="Hi" {...props} /> ). We want to deprecate key spread,
@@ -229,6 +234,7 @@ export function jsx(type, config, maybeKey) {
     key = '' + maybeKey;
   }
 
+  //// 单独处理config.key
   if (hasValidKey(config)) {
     if (__DEV__) {
       checkKeyStringCoercion(config.key);
@@ -236,10 +242,12 @@ export function jsx(type, config, maybeKey) {
     key = '' + config.key;
   }
 
+  //// 单独处理config.ref
   if (hasValidRef(config)) {
     ref = config.ref;
   }
 
+  //// 赋值config剩余属性到props
   // Remaining properties are added to a new props object
   for (propName in config) {
     if (
@@ -250,6 +258,7 @@ export function jsx(type, config, maybeKey) {
     }
   }
 
+  //// 处理默认props
   // Resolve default props
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
@@ -271,6 +280,7 @@ export function jsx(type, config, maybeKey) {
   );
 }
 
+//// 开发环境处理jsx转换为react element，比生产环境多一些warning
 /**
  * https://github.com/reactjs/rfcs/pull/107
  * @param {*} type
@@ -287,6 +297,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
     let key = null;
     let ref = null;
 
+    //// 确保key是字符串
     // Currently, key can be spread in as a prop. This causes a potential
     // issue if key is also explicitly declared (ie. <div {...props} key="Hi" />
     // or <div key="Hi" {...props} /> ). We want to deprecate key spread,
@@ -300,6 +311,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
       key = '' + maybeKey;
     }
 
+    //// 单独处理config.key
     if (hasValidKey(config)) {
       if (__DEV__) {
         checkKeyStringCoercion(config.key);
@@ -307,11 +319,13 @@ export function jsxDEV(type, config, maybeKey, source, self) {
       key = '' + config.key;
     }
 
+    //// 单独处理config.ref
     if (hasValidRef(config)) {
       ref = config.ref;
       warnIfStringRefCannotBeAutoConverted(config, self);
     }
 
+    //// 赋值config剩余属性到props
     // Remaining properties are added to a new props object
     for (propName in config) {
       if (
@@ -322,6 +336,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
       }
     }
 
+    //// 处理默认props
     // Resolve default props
     if (type && type.defaultProps) {
       const defaultProps = type.defaultProps;
@@ -332,6 +347,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
       }
     }
 
+    //// 添加key或者ref的警告
     if (key || ref) {
       const displayName =
         typeof type === 'function'

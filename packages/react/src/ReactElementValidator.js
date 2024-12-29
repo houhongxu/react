@@ -410,6 +410,7 @@ export function jsxWithValidationDynamic(type, props, key) {
   return jsxWithValidation(type, props, key, false);
 }
 
+//// 验证jsx type是否有效
 export function createElementWithValidation(type, props, children) {
   const validType = isValidElementType(type);
 
@@ -459,6 +460,7 @@ export function createElementWithValidation(type, props, children) {
     }
   }
 
+  //// 调用createElement
   const element = createElement.apply(this, arguments);
 
   // The result can be nullish if a mock or a custom function is used.
@@ -504,7 +506,7 @@ export function createFactoryWithValidation(type) {
     // Legacy hook: remove it
     Object.defineProperty(validatedFactory, 'type', {
       enumerable: false,
-      get: function() {
+      get: function () {
         console.warn(
           'Factory.type is deprecated. Access the class directly ' +
             'before passing it to createFactory.',

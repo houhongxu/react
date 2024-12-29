@@ -68,6 +68,7 @@ import {startTransition} from './ReactStartTransition';
 import {act} from './ReactAct';
 
 // TODO: Move this branching into the other module instead and just re-export.
+//// 生产环境就是跳过了类型验证
 const createElement = __DEV__ ? createElementWithValidation : createElementProd;
 const cloneElement = __DEV__ ? cloneElementWithValidation : cloneElementProd;
 const createFactory = __DEV__ ? createFactoryWithValidation : createFactoryProd;

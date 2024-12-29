@@ -6,5 +6,5 @@
  *
  * @flow
  */
-
+//// 开发时的jsx函数
 export {Fragment, jsxDEV} from './src/jsx/ReactJSX';

@@ -53,7 +53,7 @@ function hasValidKey(config) {
 }
 
 function defineKeyPropWarningGetter(props, displayName) {
-  const warnAboutAccessingKey = function() {
+  const warnAboutAccessingKey = function () {
     if (__DEV__) {
       if (!specialPropKeyWarningShown) {
         specialPropKeyWarningShown = true;
@@ -75,7 +75,7 @@ function defineKeyPropWarningGetter(props, displayName) {
 }
 
 function defineRefPropWarningGetter(props, displayName) {
-  const warnAboutAccessingRef = function() {
+  const warnAboutAccessingRef = function () {
     if (__DEV__) {
       if (!specialPropRefWarningShown) {
         specialPropRefWarningShown = true;
@@ -145,7 +145,7 @@ function warnIfStringRefCannotBeAutoConverted(config) {
  * indicating filename, line number, and/or other information.
  * @internal
  */
-const ReactElement = function(type, key, ref, self, source, owner, props) {
+const ReactElement = function (type, key, ref, self, source, owner, props) {
   const element = {
     // This tag allows us to uniquely identify this as a React Element
     $$typeof: REACT_ELEMENT_TYPE,
@@ -355,6 +355,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
   );
 }
 
+//// 创建reactElement
 /**
  * Create and return a new ReactElement of the given type.
  * See https://reactjs.org/docs/react-api.html#createelement
@@ -370,6 +371,7 @@ export function createElement(type, config, children) {
   let self = null;
   let source = null;
 
+  //// 这里其实和jsxDev除了maybekey都一样
   if (config != null) {
     if (hasValidRef(config)) {
       ref = config.ref;
@@ -398,6 +400,7 @@ export function createElement(type, config, children) {
     }
   }
 
+  //// 赋值children，children是数组，一个就赋值children[0]，多个直接赋值
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
   const childrenLength = arguments.length - 2;

@@ -294,15 +294,17 @@ function validateFragmentProps(fragment) {
   }
 }
 
+//// 验证dev时jsx type是否有效
 export function jsxWithValidation(
   type,
   props,
   key,
-  isStaticChildren,
+  isStaticChildren, //// 是否是静态数组
   source,
   self,
 ) {
   if (__DEV__) {
+    //// 验证type类型有效
     const validType = isValidElementType(type);
 
     // We warn in this case but don't throw. We expect the element creation to
@@ -349,6 +351,7 @@ export function jsxWithValidation(
       );
     }
 
+    //// 调用jsxDEV
     const element = jsxDEV(type, props, key, source, self);
 
     // The result can be nullish if a mock or a custom function is used.
@@ -409,6 +412,7 @@ export function jsxWithValidation(
   }
 }
 
+//// 比jsxWithValidation多一个参数配置，isStaticChildren=true
 // These two functions exist to still get child warnings in dev
 // even with the prod transform. This means that jsxDEV is purely
 // opt-in behavior for better messages but that we won't stop
@@ -419,6 +423,7 @@ export function jsxWithValidationStatic(type, props, key) {
   }
 }
 
+//// 比jsxWithValidation多一个参数配置，isStaticChildren=false
 export function jsxWithValidationDynamic(type, props, key) {
   if (__DEV__) {
     return jsxWithValidation(type, props, key, false);
