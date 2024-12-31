@@ -835,7 +835,6 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
       //// ! 使用传统同步调用
       scheduleLegacySyncCallback(performSyncWorkOnRoot.bind(null, root));
     } else {
-
       //// ! 同步调用
       scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));
     }
@@ -1274,6 +1273,7 @@ function markRootSuspended(root, suspendedLanes) {
   markRootSuspended_dontCallThisOneDirectly(root, suspendedLanes);
 }
 
+//// ! 同步执行渲染
 // This is the entry point for synchronous tasks that don't go
 // through Scheduler
 function performSyncWorkOnRoot(root) {
@@ -1294,6 +1294,7 @@ function performSyncWorkOnRoot(root) {
     return null;
   }
 
+  //// ! 同步渲染root
   let exitStatus = renderRootSync(root, lanes);
   if (root.tag !== LegacyRoot && exitStatus === RootErrored) {
     // If something threw an error, try rendering one more time. We'll render
@@ -1494,6 +1495,7 @@ export function popRenderLanes(fiber: Fiber) {
   popFromStack(subtreeRenderLanesCursor, fiber);
 }
 
+//// ! 初始化work fiber树等
 function prepareFreshStack(root: FiberRoot, lanes: Lanes): Fiber {
   root.finishedWork = null;
   root.finishedLanes = NoLanes;
@@ -1520,8 +1522,11 @@ function prepareFreshStack(root: FiberRoot, lanes: Lanes): Fiber {
     }
   }
   workInProgressRoot = root;
+
+  //// ! 初始化work fiber root
   const rootWorkInProgress = createWorkInProgress(root.current, null);
   workInProgress = rootWorkInProgress;
+
   workInProgressRootRenderLanes = subtreeRenderLanes = workInProgressRootIncludedLanes = lanes;
   workInProgressRootExitStatus = RootInProgress;
   workInProgressRootFatalError = null;
@@ -1706,6 +1711,7 @@ export function renderHasNotSuspendedYet(): boolean {
   return workInProgressRootExitStatus === RootInProgress;
 }
 
+//// ! 同步渲染root
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
   const prevExecutionContext = executionContext;
   executionContext |= RenderContext;
@@ -1731,6 +1737,8 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
     }
 
     workInProgressTransitions = getTransitionsForLanes(root, lanes);
+
+    //// ! 初始化workInProgress
     prepareFreshStack(root, lanes);
   }
 
@@ -1744,6 +1752,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
     markRenderStarted(lanes);
   }
 
+  //// 循环执行同步渲染
   do {
     try {
       workLoopSync();
@@ -1879,6 +1888,7 @@ function workLoopConcurrent() {
   }
 }
 
+//// ! 执行工作单元
 function performUnitOfWork(unitOfWork: Fiber): void {
   // The current, flushed, state of this fiber is the alternate. Ideally
   // nothing should rely on this, but relying on it here means that we don't

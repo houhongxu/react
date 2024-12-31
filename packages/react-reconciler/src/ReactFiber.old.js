@@ -258,10 +258,14 @@ export function resolveLazyComponentTag(Component: Function): WorkTag {
   return IndeterminateComponent;
 }
 
+//// 创建 work fiber
 // This is used to create an alternate fiber to do work on.
 export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
+  //// 获取work fiber
   let workInProgress = current.alternate;
+
   if (workInProgress === null) {
+    //// 如果没有，则复用属性新建
     // We use a double buffering pooling technique because we know that we'll
     // only ever need at most two versions of a tree. We pool the "other" unused
     // node that we're free to reuse. This is lazily created to avoid allocating
@@ -645,6 +649,7 @@ export function createOffscreenHostContainerFiber(
   }
 }
 
+//// react element to fiber
 export function createFiberFromElement(
   element: ReactElement,
   mode: TypeOfMode,

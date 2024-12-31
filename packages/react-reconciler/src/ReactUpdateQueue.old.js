@@ -387,6 +387,7 @@ export function enqueueCapturedUpdate<State>(
   queue.lastBaseUpdate = capturedUpdate;
 }
 
+//// 计算新状态
 function getStateFromUpdate<State>(
   workInProgress: Fiber,
   queue: UpdateQueue<State>,
@@ -529,6 +530,7 @@ export function processUpdateQueue<State>(
 
   // These values may change as we process the queue.
   if (firstBaseUpdate !== null) {
+    //// 新状态初始化
     // Iterate through the list of updates to compute the result.
     let newState = queue.baseState;
     // TODO: Don't need to accumulate this. Instead, we can remove renderLanes
@@ -585,6 +587,7 @@ export function processUpdateQueue<State>(
           newLastBaseUpdate = newLastBaseUpdate.next = clone;
         }
 
+        //// 计算新状态
         // Process this update.
         newState = getStateFromUpdate(
           workInProgress,
