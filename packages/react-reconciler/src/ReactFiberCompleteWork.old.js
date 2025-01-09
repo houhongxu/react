@@ -213,6 +213,7 @@ let updateHostText;
 if (supportsMutation) {
   // Mutation mode
 
+  //// 构建离屏dom树
   appendAllChildren = function(
     parent: Instance,
     workInProgress: Fiber,

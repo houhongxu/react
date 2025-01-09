@@ -1490,6 +1490,7 @@ function commitContainer(finishedWork: Fiber) {
   );
 }
 
+//// 获取最近的父dom fiber
 function getHostParentFiber(fiber: Fiber): Fiber {
   let parent = fiber.return;
   while (parent !== null) {
@@ -1505,6 +1506,7 @@ function getHostParentFiber(fiber: Fiber): Fiber {
   );
 }
 
+//// 是否是dom fiber
 function isHostParent(fiber: Fiber): boolean {
   return (
     fiber.tag === HostComponent ||
@@ -1559,6 +1561,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
   }
 }
 
+//// commit 插入标记
 function commitPlacement(finishedWork: Fiber): void {
   if (!supportsMutation) {
     return;
@@ -1600,6 +1603,7 @@ function commitPlacement(finishedWork: Fiber): void {
   }
 }
 
+//// 插入dom到container
 function insertOrAppendPlacementNodeIntoContainer(
   node: Fiber,
   before: ?Instance,
@@ -1631,6 +1635,7 @@ function insertOrAppendPlacementNodeIntoContainer(
   }
 }
 
+//// 插入dom到node
 function insertOrAppendPlacementNode(
   node: Fiber,
   before: ?Instance,
@@ -2129,6 +2134,7 @@ function commitResetTextContent(current: Fiber) {
   resetTextContent(current.stateNode);
 }
 
+//// mutation阶段
 export function commitMutationEffects(
   root: FiberRoot,
   firstChild: Fiber,
@@ -2144,10 +2150,13 @@ export function commitMutationEffects(
   inProgressRoot = null;
 }
 
+//// 开始mutation阶段
 function commitMutationEffects_begin(root: FiberRoot, lanes: Lanes) {
+  //// 遍历fiber
   while (nextEffect !== null) {
     const fiber = nextEffect;
 
+    //// ! 删
     // TODO: Should wrap this in flags check, too, as optimization
     const deletions = fiber.deletions;
     if (deletions !== null) {
@@ -2165,6 +2174,8 @@ function commitMutationEffects_begin(root: FiberRoot, lanes: Lanes) {
     const child = fiber.child;
     if ((fiber.subtreeFlags & MutationMask) !== NoFlags && child !== null) {
       ensureCorrectReturnPointer(child, fiber);
+
+      //// 子
       nextEffect = child;
     } else {
       commitMutationEffects_complete(root, lanes);
@@ -2195,6 +2206,7 @@ function commitMutationEffects_complete(root: FiberRoot, lanes: Lanes) {
   }
 }
 
+//// 处理fiber上的标记
 function commitMutationEffectsOnFiber(
   finishedWork: Fiber,
   root: FiberRoot,
@@ -2302,6 +2314,7 @@ function commitMutationEffectsOnFiber(
     }
   }
 
+  //// 处理插入和更新
   // The following switch statement is only concerned about placement,
   // updates, and deletions. To avoid needing to add a case for every possible
   // bitmap value, we remove the secondary effects from the effect tag and

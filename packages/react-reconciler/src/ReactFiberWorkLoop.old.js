@@ -2016,6 +2016,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
   }
 }
 
+//// commit阶段
 function commitRoot(root: FiberRoot, recoverableErrors: null | Array<mixed>) {
   // TODO: This no longer makes any sense. We already wrap the mutation and
   // layout phases. Should be able to remove.
@@ -2034,6 +2035,7 @@ function commitRoot(root: FiberRoot, recoverableErrors: null | Array<mixed>) {
   return null;
 }
 
+//// 真正的commitRoot
 function commitRootImpl(
   root: FiberRoot,
   recoverableErrors: null | Array<mixed>,
@@ -2054,6 +2056,7 @@ function commitRootImpl(
     throw new Error('Should not already be working.');
   }
 
+  //// 获取完成的fiber树
   const finishedWork = root.finishedWork;
   const lanes = root.finishedLanes;
 
@@ -2078,6 +2081,7 @@ function commitRootImpl(
       markCommitStopped();
     }
 
+    //// 没有则直接返回
     return null;
   } else {
     if (__DEV__) {
@@ -2089,6 +2093,8 @@ function commitRootImpl(
       }
     }
   }
+
+  //// 清空
   root.finishedWork = null;
   root.finishedLanes = NoLanes;
 
@@ -2147,16 +2153,19 @@ function commitRootImpl(
   // to check for the existence of `firstEffect` to satisfy Flow. I think the
   // only other reason this optimization exists is because it affects profiling.
   // Reconsider whether this is necessary.
+  //// 子树有副作用
   const subtreeHasEffects =
     (finishedWork.subtreeFlags &
       (BeforeMutationMask | MutationMask | LayoutMask | PassiveMask)) !==
     NoFlags;
+  //// 整个树有副作用
   const rootHasEffect =
     (finishedWork.flags &
       (BeforeMutationMask | MutationMask | LayoutMask | PassiveMask)) !==
     NoFlags;
 
   if (subtreeHasEffects || rootHasEffect) {
+    //// ! before mutation
     const prevTransition = ReactCurrentBatchConfig.transition;
     ReactCurrentBatchConfig.transition = null;
     const previousPriority = getCurrentUpdatePriority();
@@ -2172,6 +2181,7 @@ function commitRootImpl(
     // of the effect list for each phase: all mutation effects come before all
     // layout effects, and so on.
 
+    //// ! before mutation
     // The first phase a "before mutation" phase. We use this phase to read the
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
@@ -2192,6 +2202,7 @@ function commitRootImpl(
       rootCommittingMutationOrLayoutEffects = root;
     }
 
+    //// ! mutation
     // The next phase is the mutation phase, where we mutate the host tree.
     commitMutationEffects(root, finishedWork, lanes);
 
@@ -2208,6 +2219,7 @@ function commitRootImpl(
     // work is current during componentDidMount/Update.
     root.current = finishedWork;
 
+    //// ! layout
     // The next phase is the layout phase, where we call effects that read
     // the host tree after it's been mutated. The idiomatic use case for this is
     // layout, but class component lifecycles also fire here for legacy reasons.

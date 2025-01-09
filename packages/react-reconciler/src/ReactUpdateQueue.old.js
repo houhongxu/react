@@ -245,7 +245,7 @@ export function enqueueUpdate<State>(
     }
     sharedQueue.interleaved = update;
   } else {
-    //// 获取当前的更新
+    //// 获取当前更新循环链表
     const pending = sharedQueue.pending;
 
     if (pending === null) {
@@ -253,14 +253,13 @@ export function enqueueUpdate<State>(
       // This is the first update. Create a circular list.
       update.next = update;
     } else {
-      //// 本次更新的下一个是原来链表的下一个
+      //// 插入当前update到循环链表
       update.next = pending.next;
 
-      //// 下一个更新就是本次更新
       pending.next = update;
     }
 
-    //// 当前更新改为本次更新对象
+    //// 始终指向最新update
     sharedQueue.pending = update;
   }
 

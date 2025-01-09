@@ -244,6 +244,7 @@ export function resetAfterCommit(containerInfo: Container): void {
   selectionInformation = null;
 }
 
+//// 创建dom实例
 export function createInstance(
   type: string,
   props: Props,
@@ -271,6 +272,7 @@ export function createInstance(
   } else {
     parentNamespace = ((hostContext: any): HostContextProd);
   }
+  //// 创建dom
   const domElement: Instance = createElement(
     type,
     props,
@@ -278,6 +280,7 @@ export function createInstance(
     parentNamespace,
   );
   precacheFiberNode(internalInstanceHandle, domElement);
+  //// 更新fiber属性
   updateFiberProps(domElement, props);
   return domElement;
 }
@@ -477,6 +480,7 @@ export function commitTextUpdate(
   textInstance.nodeValue = newText;
 }
 
+//// dom.appendChild
 export function appendChild(
   parentInstance: Instance,
   child: Instance | TextInstance,
@@ -514,6 +518,7 @@ export function appendChildToContainer(
   }
 }
 
+//// dom.insertBefore
 export function insertBefore(
   parentInstance: Instance,
   child: Instance | TextInstance,
